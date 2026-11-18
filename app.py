@@ -1,218 +1,251 @@
 import streamlit as st
 import pandas as pd
-import joblib
-import google.generativeai as genai
-from openai import OpenAI
+import plotly.express as px
+import plotly.graph_objects as go
+import re
 
-# --- PAGE CONFIG ---
-st.set_page_config(page_title="AutoEdge AI | Vehicle Recommender", page_icon="🚗", layout="wide")
+st.set_page_config(page_title="VEHICLE FINDER | AI Edge", page_icon="🚀", layout="wide")
 
-# --- GCORE INSPIRED DARK & ORANGE UI + SMOOTH ANIMATIONS ---
+# --- CUSTOM CSS: GCORE INTRO ANIMATION + FLOATING CORNER CHATBOT + CARDS ---
 st.markdown("""
 <style>
 @import url('https://googleapis.com');
 
 html, body, [class*="css"] {
     font-family: 'Inter', sans-serif;
-    background-color: #09090B;
+    background-color: #08080A;
     color: #FFFFFF;
 }
 
-/* Smooth Entrance Animation */
-@keyframes fadeSlideUp {
-    0% { opacity: 0; transform: translateY(30px); }
-    100% { opacity: 1; transform: translateY(0); }
+/* Gcore Style Intro Banner Animation */
+@keyframes gcoreZoomIn {
+    0% { opacity: 0; transform: scale(0.85) translateY(20px); filter: blur(8px); }
+    60% { opacity: 1; transform: scale(1.03) translateY(0); filter: blur(0px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-.hero-box {
-    background: radial-gradient(circle at top right, rgba(255, 85, 0, 0.35), rgba(9, 9, 11, 0.95) 60%);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
-    padding: 50px 30px;
+@keyframes pulseGlow {
+    0%, 100% { box-shadow: 0 0 25px rgba(255, 85, 0, 0.35); }
+    50% { box-shadow: 0 0 55px rgba(255, 85, 0, 0.75); }
+}
+
+.gcore-intro {
+    background: radial-gradient(circle at center, rgba(255, 85, 0, 0.28) 0%, #0D0D11 70%);
+    border: 1px solid rgba(255, 85, 0, 0.4);
+    border-radius: 22px;
+    padding: 45px 20px;
     text-align: center;
-    animation: fadeSlideUp 0.9s ease-out;
-    margin-bottom: 30px;
+    animation: gcoreZoomIn 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards, pulseGlow 4s infinite;
+    margin-bottom: 28px;
 }
 
-.hero-title {
-    font-size: 3.2rem;
-    font-weight: 800;
-    background: linear-gradient(90deg, #FFFFFF, #FF7733);
+.gcore-logo-text {
+    font-size: 3.6rem;
+    font-weight: 900;
+    letter-spacing: 4px;
+    background: linear-gradient(90deg, #FFFFFF 20%, #FF5500 80%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    margin: 0;
 }
 
-.gcore-card {
-    background: #121216;
-    border: 1px solid #242429;
+.stat-card {
+    background: #121217;
+    border: 1px solid #26262E;
     border-radius: 16px;
-    padding: 24px;
-    transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
-    animation: fadeSlideUp 1.1s ease-out;
-    height: 100%;
+    padding: 20px;
+    text-align: center;
+    transition: all 0.3s ease;
 }
-
-.gcore-card:hover {
-    transform: translateY(-8px) scale(1.02);
+.stat-card:hover {
     border-color: #FF5500;
-    box-shadow: 0 12px 30px rgba(255, 85, 0, 0.2);
+    transform: translateY(-5px);
 }
 
-.badge-orange {
-    background-color: #FF5500;
-    color: white;
-    padding: 5px 14px;
-    border-radius: 50px;
-    font-size: 0.8rem;
-    font-weight: 600;
+.vehicle-card {
+    background: linear-gradient(145deg, #14141A, #0E0E12);
+    border: 1px solid #272730;
+    border-radius: 18px;
+    padding: 22px;
+    transition: all 0.35s ease;
+    margin-bottom: 16px;
+}
+.vehicle-card:hover {
+    border-color: #FF5500;
+    transform: translateY(-6px) scale(1.01);
+    box-shadow: 0 12px 30px rgba(255, 85, 0, 0.22);
+}
+
+.visit-btn {
     display: inline-block;
-    margin-bottom: 12px;
-}
-
-/* Active Buttons */
-.stButton>button {
-    background: linear-gradient(90deg, #FF5500, #FF7700);
-    color: white;
-    border: none;
+    background: linear-gradient(90deg, #FF5500, #FF7722);
+    color: white !important;
+    text-decoration: none;
+    padding: 10px 18px;
     border-radius: 10px;
-    padding: 12px 28px;
-    font-weight: 600;
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin-top: 12px;
     transition: 0.3s;
 }
-.stButton>button:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 20px rgba(255, 85, 0, 0.6);
+.visit-btn:hover {
+    box-shadow: 0 0 18px rgba(255, 85, 0, 0.8);
+    transform: scale(1.04);
+}
+
+/* Floating Bottom-Right Corner Chatbot Styling */
+div[data-testid="stPopover"] {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 99999;
+}
+div[data-testid="stPopover"] > button {
+    background: linear-gradient(135deg, #FF5500, #8B26FF) !important;
+    color: white !important;
+    border-radius: 50px !important;
+    padding: 14px 22px !important;
+    font-size: 1.2rem !important;
+    font-weight: 800 !important;
+    border: 2px solid rgba(255,255,255,0.25) !important;
+    box-shadow: 0 8px 30px rgba(255, 85, 0, 0.6) !important;
+    transition: all 0.3s ease !important;
+}
+div[data-testid="stPopover"] > button:hover {
+    transform: scale(1.1) rotate(-3deg) !important;
 }
 </style>
 """, unsafe_allow_html=True)
 
-# --- LOAD DATA & MODEL ---
+# --- LOAD 15,000 VEHICLES DATA ---
 @st.cache_data
-def load_data():
-    return pd.read_csv('vehicles_data.csv')
+def load_vehicles():
+    return pd.read_csv('vehicles_15k.csv')
 
-df = load_data()
+df = load_vehicles()
 
-# --- TOP NAVBAR (GCORE STYLE) ---
-col_nav1, col_nav2, col_nav3 = st.columns([2, 5, 2])
-with col_nav1:
-    st.markdown("### 🟠 **AUTOEDGE AI**")
-with col_nav2:
-    nav_choice = st.radio("", ["🏠 Home", "🚘 Recommender", "⚖️ Compare Vehicles"], horizontal=True, label_visibility="collapsed")
-with col_nav3:
-    st.markdown("<div style='text-align:right;'><span class='badge-orange'>Live AI Engine</span></div>", unsafe_allow_html=True)
-
-# --- HERO SECTION ---
+# --- GCORE ANIMATED INTRO HERO ---
 st.markdown("""
-<div class="hero-box">
-    <span class="badge-orange">⚡ AI-Powered Vehicle Intelligence</span>
-    <div class="hero-title">Smart Vehicle Selection at the Edge</div>
-    <p style="color:#A1A1AA; font-size:1.1rem; max-width:650px; margin:15px auto;">
-        Apna budget aur vehicle type enter karein. Hamara ML model aap ko best options recommend karega aur unka live comparison dikhayega.
+<div class="gcore-intro">
+    <div style="display:inline-block; background:#FF5500; color:#fff; padding:5px 16px; border-radius:50px; font-weight:700; font-size:0.85rem; margin-bottom:12px;">
+        ⚡ LIVE AI ENGINE • 15,000+ VEHICLES DATABASE
+    </div>
+    <h1 class="gcore-logo-text">🟠 VEHICLE FINDER</h1>
+    <p style="color:#B4B4C0; font-size:1.15rem; max-width:700px; margin:12px auto 0 auto;">
+        Cycle se lekar Helicopter tak — apna budget enter karein, smart advantages dekhein, visual charts se compare karein, aur direct official link par jayein!
     </p>
 </div>
 """, unsafe_allow_html=True)
 
-# --- BUDGET & FILTER SECTION ---
-st.markdown("### 🎯 Apna Budget Aur Pasand Select Karein")
-c1, c2, c3 = st.columns([2, 2, 1])
+# --- BUDGET & CATEGORY CONTROLS ---
+c1, c2, c3 = st.columns([2, 2, 1.5])
 with c1:
-    budget = st.number_input("Maximum Budget (PKR)", min_value=1000000, max_value=50000000, value=8000000, step=500000)
+    budget = st.number_input("💰 Apna Maximum Budget Likhein (PKR)", min_value=15000, max_value=1000000000, value=5000000, step=50000)
 with c2:
-    v_type = st.selectbox("Vehicle Type", ["All", "Sedan", "Hatchback", "SUV"])
+    all_cats = ["All Categories"] + sorted(df['Category'].unique().tolist())
+    selected_cat = st.selectbox("🚘 Vehicle Category Chunein", all_cats)
 with c3:
-    st.write("")
-    st.write("")
-    search_btn = st.button("Find Vehicles 🚀")
+    sort_by = st.selectbox("⚡ Priority / Advantage", ["Best Comfort & Value", "Highest Mileage", "Highest Top Speed", "Lowest Price"])
 
-# --- FILTERING & RECOMMENDATIONS ---
-filtered_df = df[df['Price'] <= budget]
-if v_type != "All":
-    filtered_df = filtered_df[filtered_df['Type'] == v_type]
+# Filter Logic
+affordable_df = df[df['Price'] <= budget].copy()
+if selected_cat != "All Categories":
+    affordable_df = affordable_df[affordable_df['Category'] == selected_cat]
 
-if not filtered_df.empty:
-    # Sort by Comfort Score & Mileage
-    recommended = filtered_df.sort_values(by=['Comfort_Score', 'Mileage_kmpl'], ascending=False)
-    
-    st.markdown("### 🏆 Top Recommended Vehicles (Based on Advantages)")
-    cols = st.columns(min(3, len(recommended)))
-    for idx, (_, row) in enumerate(recommended.head(3).iterrows()):
-        with cols[idx]:
+if sort_by == "Best Comfort & Value":
+    affordable_df = affordable_df.sort_values(by=['Comfort_Score', 'Price'], ascending=[False, False])
+elif sort_by == "Highest Mileage":
+    affordable_df = affordable_df.sort_values(by='Mileage_kmpl', ascending=False)
+elif sort_by == "Highest Top Speed":
+    affordable_df = affordable_df.sort_values(by='Top_Speed_kmh', ascending=False)
+else:
+    affordable_df = affordable_df.sort_values(by='Price', ascending=True)
+
+# --- LIVE METRICS ROW ---
+m1, m2, m3, m4 = st.columns(4)
+with m1:
+    st.markdown(f"<div class='stat-card'><h2 style='color:#FF5500;margin:0;'>{len(affordable_df):,}</h2><p style='color:#A1A1AA;margin:0;'>VEHICLES IN BUDGET</p></div>", unsafe_allow_html=True)
+with m2:
+    cats_fit = affordable_df['Category'].nunique() if not affordable_df.empty else 0
+    st.markdown(f"<div class='stat-card'><h2 style='color:#FF5500;margin:0;'>{cats_fit}</h2><p style='color:#A1A1AA;margin:0;'>CATEGORIES FIT</p></div>", unsafe_allow_html=True)
+with m3:
+    max_fit = f"Rs {affordable_df['Price'].max():,}" if not affordable_df.empty else "N/A"
+    st.markdown(f"<div class='stat-card'><h2 style='color:#FF5500;margin:0;'>{max_fit}</h2><p style='color:#A1A1AA;margin:0;'>BEST YOU CAN BUY</p></div>", unsafe_allow_html=True)
+with m4:
+    min_fit = f"Rs {affordable_df['Price'].min():,}" if not affordable_df.empty else "N/A"
+    st.markdown(f"<div class='stat-card'><h2 style='color:#FF5500;margin:0;'>{min_fit}</h2><p style='color:#A1A1AA;margin:0;'>STARTING FROM</p></div>", unsafe_allow_html=True)
+
+st.write("")
+
+# --- RECOMMENDED VEHICLES WITH DIRECT WEBSITE BUTTONS ---
+if not affordable_df.empty:
+    st.markdown("### 🏆 Top Recommended Vehicles (With Direct Website Links)")
+    top_vehicles = affordable_df.head(6)
+    cols = st.columns(3)
+    for idx, (_, row) in enumerate(top_vehicles.iterrows()):
+        with cols[idx % 3]:
             st.markdown(f"""
-            <div class="gcore-card">
-                <span class="badge-orange">#{idx+1} Best Match</span>
-                <h3>{row['Vehicle_Name']}</h3>
-                <p style="color:#FF7733; font-weight:700; font-size:1.2rem;">PKR {row['Price']:,}</p>
-                <p style="color:#D4D4D8;"><b>Type:</b> {row['Type']} | <b>Avg:</b> {row['Mileage_kmpl']} km/l</p>
-                <p style="color:#A1A1AA; font-size:0.9rem;">✨ <b>Key Advantage:</b> {row['Advantage']}</p>
+            <div class="vehicle-card">
+                <span style="background:#24242E; color:#FF7733; padding:4px 12px; border-radius:20px; font-size:0.8rem; font-weight:700;">
+                    {row['Category']} • {row['Year']}
+                </span>
+                <h3 style="margin:10px 0 4px 0;">{row['Vehicle_Name']}</h3>
+                <p style="color:#FF5500; font-size:1.3rem; font-weight:800; margin:0;">PKR {row['Price']:,}</p>
+                <p style="color:#D4D4D8; font-size:0.9rem; margin:8px 0;">
+                    ⚡ <b>Speed:</b> {row['Top_Speed_kmh']} km/h | ⛽ <b>Avg:</b> {row['Mileage_kmpl']} km/l | ⭐ <b>Score:</b> {row['Comfort_Score']}/10
+                </p>
+                <p style="color:#A1A1AA; font-size:0.88rem; margin:6px 0;">
+                    ✅ <b>Advantage:</b> {row['Advantage']}
+                </p>
+                <a href="{row['Direct_Link']}" target="_blank" class="visit-btn">🔗 Open Official / Market Page</a>
             </div>
             """, unsafe_allow_html=True)
 
-    # --- COMPARISON SECTION ---
+    # --- INTERACTIVE MOVING VISUAL COMPARISON (NO BORING TABLES!) ---
     st.markdown("---")
-    st.markdown("### ⚖️ Side-by-Side Vehicle Comparison")
-    selected_cars = st.multiselect(
-        "Compare karne ke liye gaariyan select karein:",
-        options=filtered_df['Vehicle_Name'].tolist(),
-        default=filtered_df['Vehicle_Name'].tolist()[:min(3, len(filtered_df))]
+    st.markdown("### 📊 Interactive Visual Comparison Studio")
+    comp_choices = st.multiselect(
+        "Compare karne ke liye koi bhi 2 se 5 vehicles select karein:",
+        options=affordable_df['Vehicle_Name'].head(100).tolist(),
+        default=affordable_df['Vehicle_Name'].head(3).tolist()
     )
-    if selected_cars:
-        comp_df = filtered_df[filtered_df['Vehicle_Name'].isin(selected_cars)].set_index('Vehicle_Name')
-        st.dataframe(comp_df[['Type', 'Price', 'Mileage_kmpl', 'Maintenance_Cost', 'Comfort_Score', 'Resale_Value', 'Advantage']], use_container_width=True)
+
+    if len(comp_choices) >= 2:
+        comp_data = affordable_df[affordable_df['Vehicle_Name'].isin(comp_choices)].drop_duplicates(subset=['Vehicle_Name'])
+        chart_col1, chart_col2 = st.columns(2)
+
+        with chart_col1:
+            fig_bar = px.bar(
+                comp_data,
+                x='Vehicle_Name',
+                y=['Top_Speed_kmh', 'Mileage_kmpl', 'Comfort_Score'],
+                barmode='group',
+                title="⚡ Performance, Mileage & Comfort Comparison",
+                color_discrete_sequence=['#FF5500', '#00E5FF', '#A855F7']
+            )
+            fig_bar.update_layout(paper_bgcolor='#121217', plot_bgcolor='#121217', font_color='white')
+            st.plotly_chart(fig_bar, use_container_width=True)
+
+        with chart_col2:
+            fig_radar = go.Figure()
+            for _, r in comp_data.iterrows():
+                fig_radar.add_trace(go.Scatterpolar(
+                    r=[r['Comfort_Score']*10, min(r['Top_Speed_kmh']/3.2, 100), min(r['Mileage_kmpl']*1.5, 100), r['Comfort_Score']*10],
+                    theta=['Comfort', 'Top Speed', 'Fuel Efficiency', 'Comfort'],
+                    fill='toself',
+                    name=r['Vehicle_Name']
+                ))
+            fig_radar.update_layout(
+                polar=dict(radialaxis=dict(visible=True, range=[0, 100], gridcolor='#2A2A35')),
+                paper_bgcolor='#121217',
+                font_color='white',
+                title="🎯 Multi-Axis Advantage Radar"
+            )
+            st.plotly_chart(fig_radar, use_container_width=True)
 else:
-    st.warning("Is budget mein koi vehicle nahi mili. Budget thora barha kar check karein!")
+    st.warning("Is budget mein koi vehicle nahi mili! Kam az kam Rs 15,000 (Cycle ke liye) enter karein.")
 
-# --- MULTI-API CHATBOT (SIDEBAR / CORNER WIDGET) ---
-# Apni 3 API keys yahan ya Streamlit Secrets mein lagayein
-GEMINI_KEY = st.secrets.get("GEMINI_API_KEY", "APNI_GEMINI_KEY_YAHAN_LAGAYEIN")
-GROQ_KEY = st.secrets.get("GROQ_API_KEY", "APNI_GROQ_KEY_YAHAN_LAGAYEIN")
-OPENAI_KEY = st.secrets.get("OPENAI_API_KEY", "APNI_OPENAI_KEY_YAHAN_LAGAYEIN")
-
-def multi_llm_chatbot(user_prompt):
-    # API 1: Google Gemini
-    try:
-        genai.configure(api_key=GEMINI_KEY)
-        model = genai.GenerativeModel('gemini-1.5-flash')
-        res = model.generate_content(f"You are an expert car advisor. Answer concisely: {user_prompt}")
-        return f"🟢 [Gemini]: {res.text}"
-    except Exception:
-        pass
-
-    # API 2: Groq (Llama-3) Fallback
-    try:
-        client = OpenAI(base_url="https://groq.com", api_key=GROQ_KEY)
-        res = client.chat.completions.create(
-            model="llama3-8b-8192",
-            messages=[{"role": "user", "content": user_prompt}]
-        )
-        return f"🟠 [Groq AI]: {res.choices[0].message.content}"
-    except Exception:
-        pass
-
-    # API 3: OpenAI Fallback
-    try:
-        client = OpenAI(api_key=OPENAI_KEY)
-        res = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role": "user", "content": user_prompt}]
-        )
-        return f"🔵 [OpenAI]: {res.choices[0].message.content}"
-    except Exception:
-        return "⚠️ Teeno API keys check karein! Streamlit Secrets mein valid keys add karein."
-
-# Corner Chatbot Popover with Emoji
-with st.sidebar:
-    st.markdown("## 🤖 AutoBot AI Assistant")
-    st.caption("Powered by 3 Multi-LLM APIs (Gemini + Groq + OpenAI)")
-    if "messages" not in st.session_state:
-        st.session_state.messages = [{"role": "assistant", "content": "Salam! 🚗 Mujh se kisi bhi gaari, budget ya comparison ke baray mein poochein."}]
-
-    for msg in st.session_state.messages:
-        st.chat_message(msg["role"]).write(msg["content"])
-
-    if prompt := st.chat_input("Ask anything about vehicles..."):
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        st.chat_message("user").write(prompt)
-        reply = multi_llm_chatbot(prompt)
-        st.session_state.messages.append({"role": "assistant", "content": reply})
-        st.chat_message("assistant").write(reply)
+# --- API-FREE INTELLIGENT CHATGPT-STYLE CORNER CHATBOT ---
+def smart_vehicle_assistant(user_msg, data_df, current_budget):
+    msg = user_msg.lower().strip()
+    
