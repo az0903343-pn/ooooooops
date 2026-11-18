@@ -1,0 +1,9 @@
+Vehicle_Name,Type,Price,Mileage_kmpl,Maintenance_Cost,Comfort_Score,Resale_Value,Advantage,Type_Encoded
+Honda Civic,Sedan,8500000,12.5,Medium,8.8,High,Best sporty drive and luxury interior,2
+Toyota Corolla,Sedan,6800000,14.0,Low,8.2,Very High,Unbeatable reliability and fuel average,2
+Suzuki Alto,Hatchback,2800000,22.0,Very Low,6.5,Very High,Best fuel economy and lowest maintenance,0
+Kia Sportage,SUV,8200000,10.5,High,9.0,Medium,Powerful SUV with spacious family cabin,1
+Hyundai Tucson,SUV,8800000,11.0,High,9.1,Medium,Modern features and smooth suspension,1
+Suzuki Cultus,Hatchback,3800000,18.5,Low,7.2,High,Great city car with easy spare parts,0
+Toyota Yaris,Sedan,5200000,15.5,Low,7.9,High,Comfortable sedan with strong resale,2
+MG HS,SUV,8900000,10.0,High,9.2,Low,Premium features and turbo performance,1
