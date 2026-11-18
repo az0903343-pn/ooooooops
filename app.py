@@ -73,8 +73,8 @@ css_code += ".vehicle-card { background: linear-gradient(145deg, #15151C, #0E0E1
 css_code += ".vehicle-card:hover { border-color: #FF5500; transform: translateY(-6px); box-shadow: 0 12px 30px rgba(255, 85, 0, 0.25); }"
 css_code += ".visit-btn { display: inline-block; background: linear-gradient(90deg, #FF5500, #FF7722); color: #FFFFFF !important; text-decoration: none; padding: 10px 18px; border-radius: 10px; font-weight: 700; font-size: 0.9rem; margin-top: 12px; transition: 0.3s; }"
 css_code += ".visit-btn:hover { box-shadow: 0 0 18px rgba(255, 85, 0, 0.85); transform: scale(1.03); }"
-css_code += "div[data-testid='stPopover'] { position: fixed !important; bottom: 28px !important; right: 28px !important; z-index: 999999 !important; width: auto !important; }"
-css_code += "div[data-testid='stPopover'] > button { background: linear-gradient(135deg, #FF5500, #7C3AED) !important; color: white !important; border-radius: 50px !important; padding: 14px 22px !important; font-size: 1.15rem !important; font-weight: 800 !important; border: 2px solid rgba(255,255,255,0.3) !important; box-shadow: 0 8px 30px rgba(255, 85, 0, 0.75) !important; }"
+css_code += "div[data-testid='stPopover'] { position: fixed !important; bottom: 26px !important; left: 26px !important; z-index: 999999 !important; width: auto !important; }"
+css_code += "div[data-testid='stPopover'] > button { background: linear-gradient(135deg, #FF5500, #7C3AED) !important; color: white !important; border-radius: 50px !important; padding: 14px 24px !important; font-size: 1.15rem !important; font-weight: 800 !important; border: 2px solid rgba(255,255,255,0.4) !important; box-shadow: 0 8px 30px rgba(255, 85, 0, 0.85) !important; }"
 css_code += "</style>"
 st.markdown(css_code, unsafe_allow_html=True)
 
@@ -87,7 +87,7 @@ df = load_vehicles()
 hero_html = "<div class='gcore-intro'>"
 hero_html += "<div style='display:inline-block; background:#FF5500; color:#fff; padding:4px 16px; border-radius:50px; font-weight:700; font-size:0.82rem; margin-bottom:10px;'>⚡ LIVE AI ENGINE • 15,000+ VEHICLES (CYCLE TO HELICOPTER)</div>"
 hero_html += "<h1 class='gcore-logo-text'>🟠 VEHICLE FINDER</h1>"
-hero_html += "<p style='color:#B4B4C0; font-size:1.05rem; max-width:680px; margin:10px auto 0 auto;'>Apna budget set karein, smart advantages dekhein, interactive comparison studio use karein, aur bottom-right <b>🤖 V-Bot</b> se baat karein!</p>"
+hero_html += "<p style='color:#B4B4C0; font-size:1.05rem; max-width:680px; margin:10px auto 0 auto;'>Apna budget set karein, smart advantages dekhein, interactive comparison studio use karein, aur bottom-left <b>🤖 V-Bot</b> se baat karein!</p>"
 hero_html += "</div>"
 st.markdown(hero_html, unsafe_allow_html=True)
 
@@ -98,14 +98,19 @@ st.markdown("### 🎛️ Smart Budget & Filter Controls")
 q1, q2, q3, q4, q5 = st.columns(5)
 if q1.button("🚲 2 Lakh (Bike/Cycle)", use_container_width=True):
     st.session_state.budget_val = 200000
+    st.session_state.brand_box = "All Brands"
 if q2.button("🛺 10 Lakh (Rickshaw/Used)", use_container_width=True):
     st.session_state.budget_val = 1000000
+    st.session_state.brand_box = "All Brands"
 if q3.button("🚗 50 Lakh (Sedan/SUV)", use_container_width=True):
     st.session_state.budget_val = 5000000
+    st.session_state.brand_box = "All Brands"
 if q4.button("🚚 3 Crore (Luxury/Truck)", use_container_width=True):
     st.session_state.budget_val = 30000000
+    st.session_state.brand_box = "All Brands"
 if q5.button("🚁 25 Crore (Yacht/Chopper)", use_container_width=True):
     st.session_state.budget_val = 250000000
+    st.session_state.brand_box = "All Brands"
 
 c1, c2, c3, c4 = st.columns([2, 1.5, 1.5, 1.5])
 with c1:
@@ -115,9 +120,11 @@ with c2:
     all_cats = ["All Categories"] + sorted(df['Category'].unique().tolist())
     selected_cat = st.selectbox("🚘 Vehicle Category", all_cats)
 with c3:
-    temp_df = df if selected_cat == "All Categories" else df[df['Category'] == selected_cat]
-    all_brands = ["All Brands"] + sorted(temp_df['Brand'].unique().tolist())
-    selected_brand = st.selectbox("🏷️ Brand Filter", all_brands)
+    budget_sub = df[df['Price'] <= budget]
+    if selected_cat != "All Categories":
+        budget_sub = budget_sub[budget_sub['Category'] == selected_cat]
+    avail_brands = ["All Brands"] + sorted(budget_sub['Brand'].unique().tolist())
+    selected_brand = st.selectbox("🏷️ Brand Filter (In Budget)", avail_brands, key="brand_box")
 with c4:
     sort_by = st.selectbox("⚡ Sort By Advantage", ["Best Comfort & Value", "Highest Top Speed", "Highest Mileage", "Lowest Price"])
 
@@ -149,18 +156,20 @@ m4.markdown(f"<div class='stat-card'><h2 style='color:#FF5500;margin:0;'>{start_
 
 st.write("")
 
-tab1, tab2 = st.tabs(["🏆 Top Recommended Vehicles", "⚖️ Comparison & Advantages Studio"])
+def smart_vehicle_assistant(user_msg, data_df, current_budget):
+    msg = user_msg.lower().strip()
+    if any(w in msg for w in ['salam', 'aoa', 'hello', 'hi', 'hey']):
+        return f"Wa Alaikum Assalam! 👋 Main **V-Bot** hoon — aap ka AI Vehicle Advisor.\n\nAap ka current budget **PKR {current_budget:,}** hai. Mujh se kisi bhi category (Cycle, Bike, Car, Truck, Yacht, Helicopter) ya budget ke baray mein poochein!"
 
-with tab1:
-    if not affordable_df.empty:
-        top_vehicles = affordable_df.head(9)
-        cols = st.columns(3)
-        for idx, (_, row) in enumerate(top_vehicles.iterrows()):
-            icon = CAT_ICONS.get(row['Category'], '🚘')
-            safe_query = urllib.parse.quote(f"{row['Vehicle_Name']} official specs price")
-            working_url = f"https://google.com{safe_query}"
-            
-            card_html = "<div class='vehicle-card'>"
-            card_html += f"<div style='display:flex; justify-content:space-between; align-items:center;'><span style='background:#24242E; color:#FF7733; padding:4px 12px; border-radius:20px; font-size:0.8rem; font-weight:700;'>{icon} {row['Category']} • {row['Year']}</span><span style='font-size:1.8rem;'>{icon}</span></div>"
-            card_html += f"<h3 style='margin:10px 0 4px 0;'>{row['Vehicle_Name']}</h3>"
-            card_html += f"<p style='color:#FF5500; font-size:1.3rem; font-weight:800; margin:0;'>PKR {row['Price']:,}</p>"
+    detected_budget = current_budget
+    lakh_match = re.search(r'(\d+(\.\d+)?)\s*lakh', msg)
+    crore_match = re.search(r'(\d+(\.\d+)?)\s*crore', msg)
+    num_match = re.search(r'\b(\d{5,10})\b', msg)
+
+    if crore_match:
+        detected_budget = int(float(crore_match.group(1)) * 10000000)
+    elif lakh_match:
+        detected_budget = int(float(lakh_match.group(1)) * 100000)
+    elif num_match:
+        detected_budget = int(num_match.group(1))
+
