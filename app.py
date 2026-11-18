@@ -99,14 +99,6 @@ html, body, [class*="css"] {
     margin: 0;
 }
 
-.control-panel {
-    background: #111116;
-    border: 1px solid #2A2A35;
-    border-radius: 18px;
-    padding: 20px;
-    margin-bottom: 20px;
-}
-
 .stat-card {
     background: #121217;
     border: 1px solid #26262E;
@@ -242,12 +234,17 @@ elif sort_by == "Highest Mileage":
 else:
     affordable_df = affordable_df.sort_values(by='Price', ascending=True)
 
-# --- METRICS ---
+# --- METRICS (CLEAN VARIABLES WITHOUT BACKSLASHES) ---
+total_count = f"{len(affordable_df):,}"
+cat_count = f"{affordable_df['Category'].nunique()}" if not affordable_df.empty else "0"
+best_buy_str = f"Rs {affordable_df['Price'].max():,}" if not affordable_df.empty else "N/A"
+start_from_str = f"Rs {affordable_df['Price'].min():,}" if not affordable_df.empty else "N/A"
+
 m1, m2, m3, m4 = st.columns(4)
-m1.markdown(f"<div class='stat-card'><h2 style='color:#FF5500;margin:0;'>{len(affordable_df):,}</h2><p style='color:#A1A1AA;margin:0;'>VEHICLES IN BUDGET</p></div>", unsafe_allow_html=True)
-m2.markdown(f"<div class='stat-card'><h2 style='color:#FF5500;margin:0;'>{affordable_df['Category'].nunique() if not affordable_df.empty else 0}</h2><p style='color:#A1A1AA;margin:0;'>CATEGORIES FIT</p></div>", unsafe_allow_html=True)
-m3.markdown(f"<div class='stat-card'><h2 style='color:#FF5500;margin:0;'>{f'Rs {affordable_df[\"Price\"].max():,}' if not affordable_df.empty else 'N/A'}</h2><p style='color:#A1A1AA;margin:0;'>BEST YOU CAN BUY</p></div>", unsafe_allow_html=True)
-m4.markdown(f"<div class='stat-card'><h2 style='color:#FF5500;margin:0;'>{f'Rs {affordable_df[\"Price\"].min():,}' if not affordable_df.empty else 'N/A'}</h2><p style='color:#A1A1AA;margin:0;'>STARTING FROM</p></div>", unsafe_allow_html=True)
+m1.markdown(f"<div class='stat-card'><h2 style='color:#FF5500;margin:0;'>{total_count}</h2><p style='color:#A1A1AA;margin:0;'>VEHICLES IN BUDGET</p></div>", unsafe_allow_html=True)
+m2.markdown(f"<div class='stat-card'><h2 style='color:#FF5500;margin:0;'>{cat_count}</h2><p style='color:#A1A1AA;margin:0;'>CATEGORIES FIT</p></div>", unsafe_allow_html=True)
+m3.markdown(f"<div class='stat-card'><h2 style='color:#FF5500;margin:0;'>{best_buy_str}</h2><p style='color:#A1A1AA;margin:0;'>BEST YOU CAN BUY</p></div>", unsafe_allow_html=True)
+m4.markdown(f"<div class='stat-card'><h2 style='color:#FF5500;margin:0;'>{start_from_str}</h2><p style='color:#A1A1AA;margin:0;'>STARTING FROM</p></div>", unsafe_allow_html=True)
 
 st.write("")
 
@@ -260,7 +257,6 @@ with tab1:
         cols = st.columns(3)
         for idx, (_, row) in enumerate(top_vehicles.iterrows()):
             icon = CAT_ICONS.get(row['Category'], '🚘')
-            # FIXED WORKING URL
             safe_query = urllib.parse.quote(f"{row['Vehicle_Name']} official specs price")
             working_url = f"https://google.com{safe_query}"
             
