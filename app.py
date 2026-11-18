@@ -62,110 +62,25 @@ DETAILED_ADVANTAGES = {
     ]
 }
 
-# --- CUSTOM CSS: GCORE ANIMATION + CORNER CHATBOT + ADVANCED CONTROLS ---
-st.markdown("""
-<style>
-@import url('https://googleapis.com');
-
-html, body, [class*="css"] {
-    font-family: 'Inter', sans-serif;
-    background-color: #08080A;
-    color: #FFFFFF;
-}
-
-@keyframes gcoreZoomIn {
-    0% { opacity: 0; transform: scale(0.88) translateY(20px); }
-    100% { opacity: 1; transform: scale(1) translateY(0); }
-}
-
-.gcore-intro {
-    background: radial-gradient(circle at center, rgba(255, 85, 0, 0.32) 0%, #0D0D11 72%);
-    border: 1px solid rgba(255, 85, 0, 0.45);
-    border-radius: 22px;
-    padding: 36px 20px;
-    text-align: center;
-    animation: gcoreZoomIn 0.9s ease-out forwards;
-    margin-bottom: 24px;
-    box-shadow: 0 0 35px rgba(255, 85, 0, 0.25);
-}
-
-.gcore-logo-text {
-    font-size: 3.3rem;
-    font-weight: 900;
-    letter-spacing: 3px;
-    background: linear-gradient(90deg, #FFFFFF 20%, #FF5500 80%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin: 0;
-}
-
-.stat-card {
-    background: #121217;
-    border: 1px solid #26262E;
-    border-radius: 16px;
-    padding: 18px;
-    text-align: center;
-    transition: all 0.3s ease;
-}
-.stat-card:hover {
-    border-color: #FF5500;
-    transform: translateY(-4px);
-}
-
-.vehicle-card {
-    background: linear-gradient(145deg, #15151C, #0E0E13);
-    border: 1px solid #2A2A35;
-    border-radius: 18px;
-    padding: 22px;
-    transition: all 0.35s ease;
-    margin-bottom: 16px;
-}
-.vehicle-card:hover {
-    border-color: #FF5500;
-    transform: translateY(-6px);
-    box-shadow: 0 12px 30px rgba(255, 85, 0, 0.25);
-}
-
-.visit-btn {
-    display: inline-block;
-    background: linear-gradient(90deg, #FF5500, #FF7722);
-    color: #FFFFFF !important;
-    text-decoration: none;
-    padding: 10px 18px;
-    border-radius: 10px;
-    font-weight: 700;
-    font-size: 0.9rem;
-    margin-top: 12px;
-    transition: 0.3s;
-}
-.visit-btn:hover {
-    box-shadow: 0 0 18px rgba(255, 85, 0, 0.85);
-    transform: scale(1.03);
-}
-
-/* FIXED BOTTOM-RIGHT FLOATING CORNER CHATBOT */
-div[data-testid="stPopover"] {
-    position: fixed !important;
-    bottom: 28px !important;
-    right: 28px !important;
-    z-index: 999999 !important;
-    width: auto !important;
-}
-div[data-testid="stPopover"] > button {
-    background: linear-gradient(135deg, #FF5500, #7C3AED) !important;
-    color: white !important;
-    border-radius: 50px !important;
-    padding: 14px 22px !important;
-    font-size: 1.15rem !important;
-    font-weight: 800 !important;
-    border: 2px solid rgba(255,255,255,0.3) !important;
-    box-shadow: 0 8px 30px rgba(255, 85, 0, 0.75) !important;
-}
-div[data-testid="stPopover"] > button:hover {
-    transform: scale(1.08) !important;
-}
-</style>
-""", unsafe_allow_html=True)
+# --- CUSTOM CSS ---
+st.markdown(
+    "<style>"
+    "@import url('https://googleapis.com');"
+    "html, body, [class*='css'] { font-family: 'Inter', sans-serif; background-color: #08080A; color: #FFFFFF; }"
+    "@keyframes gcoreZoomIn { 0% { opacity: 0; transform: scale(0.88) translateY(20px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }"
+    ".gcore-intro { background: radial-gradient(circle at center, rgba(255, 85, 0, 0.32) 0%, #0D0D11 72%); border: 1px solid rgba(255, 85, 0, 0.45); border-radius: 22px; padding: 36px 20px; text-align: center; animation: gcoreZoomIn 0.9s ease-out forwards; margin-bottom: 24px; box-shadow: 0 0 35px rgba(255, 85, 0, 0.25); }"
+    ".gcore-logo-text { font-size: 3.3rem; font-weight: 900; letter-spacing: 3px; background: linear-gradient(90deg, #FFFFFF 20%, #FF5500 80%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; }"
+    ".stat-card { background: #121217; border: 1px solid #26262E; border-radius: 16px; padding: 18px; text-align: center; transition: all 0.3s ease; }"
+    ".stat-card:hover { border-color: #FF5500; transform: translateY(-4px); }"
+    ".vehicle-card { background: linear-gradient(145deg, #15151C, #0E0E13); border: 1px solid #2A2A35; border-radius: 18px; padding: 22px; transition: all 0.35s ease; margin-bottom: 16px; }"
+    ".vehicle-card:hover { border-color: #FF5500; transform: translateY(-6px); box-shadow: 0 12px 30px rgba(255, 85, 0, 0.25); }"
+    ".visit-btn { display: inline-block; background: linear-gradient(90deg, #FF5500, #FF7722); color: #FFFFFF !important; text-decoration: none; padding: 10px 18px; border-radius: 10px; font-weight: 700; font-size: 0.9rem; margin-top: 12px; transition: 0.3s; }"
+    ".visit-btn:hover { box-shadow: 0 0 18px rgba(255, 85, 0, 0.85); transform: scale(1.03); }"
+    "div[data-testid='stPopover'] { position: fixed !important; bottom: 28px !important; right: 28px !important; z-index: 999999 !important; width: auto !important; }"
+    "div[data-testid='stPopover'] > button { background: linear-gradient(135deg, #FF5500, #7C3AED) !important; color: white !important; border-radius: 50px !important; padding: 14px 22px !important; font-size: 1.15rem !important; font-weight: 800 !important; border: 2px solid rgba(255,255,255,0.3) !important; box-shadow: 0 8px 30px rgba(255, 85, 0, 0.75) !important; }"
+    "</style>",
+    unsafe_allow_html=True
+)
 
 # --- LOAD DATA ---
 @st.cache_data
@@ -175,17 +90,18 @@ def load_vehicles():
 df = load_vehicles()
 
 # --- ANIMATED HERO ---
-st.markdown("""
-<div class="gcore-intro">
-    <div style="display:inline-block; background:#FF5500; color:#fff; padding:4px 16px; border-radius:50px; font-weight:700; font-size:0.82rem; margin-bottom:10px;">
-        ⚡ LIVE AI ENGINE • 15,000+ VEHICLES (CYCLE TO HELICOPTER)
-    </div>
-    <h1 class="gcore-logo-text">🟠 VEHICLE FINDER</h1>
-    <p style="color:#B4B4C0; font-size:1.05rem; max-width:680px; margin:10px auto 0 auto;">
-        Apna budget set karein, smart advantages dekhein, interactive comparison studio use karein, aur bottom-right <b>🤖 V-Bot</b> se baat karein!
-    </p>
-</div>
-""", unsafe_allow_html=True)
+st.markdown(
+    "<div class='gcore-intro'>"
+    "<div style='display:inline-block; background:#FF5500; color:#fff; padding:4px 16px; border-radius:50px; font-weight:700; font-size:0.82rem; margin-bottom:10px;'>"
+    "⚡ LIVE AI ENGINE • 15,000+ VEHICLES (CYCLE TO HELICOPTER)"
+    "</div>"
+    "<h1 class='gcore-logo-text'>🟠 VEHICLE FINDER</h1>"
+    "<p style='color:#B4B4C0; font-size:1.05rem; max-width:680px; margin:10px auto 0 auto;'>"
+    "Apna budget set karein, smart advantages dekhein, interactive comparison studio use karein, aur bottom-right <b>🤖 V-Bot</b> se baat karein!"
+    "</p>"
+    "</div>",
+    unsafe_allow_html=True
+)
 
 # --- ADVANCED BUDGET & FILTER PANEL ---
 if "budget_val" not in st.session_state:
@@ -234,7 +150,7 @@ elif sort_by == "Highest Mileage":
 else:
     affordable_df = affordable_df.sort_values(by='Price', ascending=True)
 
-# --- METRICS (CLEAN VARIABLES WITHOUT BACKSLASHES) ---
+# --- METRICS ---
 total_count = f"{len(affordable_df):,}"
 cat_count = f"{affordable_df['Category'].nunique()}" if not affordable_df.empty else "0"
 best_buy_str = f"Rs {affordable_df['Price'].max():,}" if not affordable_df.empty else "N/A"
@@ -260,7 +176,13 @@ with tab1:
             safe_query = urllib.parse.quote(f"{row['Vehicle_Name']} official specs price")
             working_url = f"https://google.com{safe_query}"
             
-            with cols[idx % 3]:
-                st.markdown(f"""
-                <div class="vehicle-card">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
+            card_html = (
+                f"<div class='vehicle-card'>"
+                f"<div style='display:flex; justify-content:space-between; align-items:center;'>"
+                f"<span style='background:#24242E; color:#FF7733; padding:4px 12px; border-radius:20px; font-size:0.8rem; font-weight:700;'>"
+                f"{icon} {row['Category']} • {row['Year']}"
+                f"</span>"
+                f"<span style='font-size:1.8rem;'>{icon}</span>"
+                f"</div>"
+                f"<h3 style='margin:10px 0 4px 0;'>{row['Vehicle_Name']}</h3>"
+                f"<p style='color:#FF5500; font-size:1.3rem; font-weight:800; margin:0;'>PKR {row['Price']:,}</p>"
